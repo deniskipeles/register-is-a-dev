@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Send, Loader2, Check } from 'lucide-react';
+import { Send, Loader2, Check, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getApexClient } from '@/lib/apex';
 
 export default function ContactPage() {
   const [contactName, setContactName] = useState('');
@@ -10,21 +11,39 @@ export default function ContactPage() {
   const [contactMessage, setContactMessage] = useState('');
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
+  const [contactError, setContactError] = useState('');
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactName || !contactEmail || !contactMessage) return;
 
     setIsSubmittingContact(true);
-    // Simulated high-fidelity API packet dispatch
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmittingContact(false);
-    setContactSuccess(true);
-    setContactName('');
-    setContactEmail('');
-    setContactMessage('');
-    setTimeout(() => setContactSuccess(false), 5000);
+    setContactError('');
+
+    try {
+      const client = getApexClient();
+      if (client) {
+        // Dispatch structured packet payload securely to ApexKit collection
+        await client.collection('messages').create({
+          name: contactName,
+          email: contactEmail,
+          message: contactMessage,
+        });
+
+        setIsSubmittingContact(false);
+        setContactSuccess(true);
+        setContactName('');
+        setContactEmail('');
+        setContactMessage('');
+        setTimeout(() => setContactSuccess(false), 5000);
+      } else {
+        throw new Error('ApexKit client failed to initialize.');
+      }
+    } catch (err: any) {
+      console.error('[Contact] Transmission failure:', err);
+      setContactError(err.message || 'Failed to dispatch transmission payload.');
+      setIsSubmittingContact(false);
+    }
   };
 
   return (
@@ -43,6 +62,16 @@ export default function ContactPage() {
           Send an encrypted contact transmission directly to my endpoint
         </p>
 
+        {contactError && (
+          <div className="mb-6 p-4 border-[2px] border-black bg-rose-100 text-rose-800 font-mono text-xs font-bold uppercase flex items-start gap-2.5 shadow-[3px_3px_0px_0px_#000000]">
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-black">Transmission Error:</p>
+              <p className="opacity-95 font-medium mt-0.5">{contactError}</p>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleContactSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -54,7 +83,8 @@ export default function ContactPage() {
                 value={contactName}
                 onChange={e => setContactName(e.target.value)}
                 required
-                className="w-full bg-neutral-50 border-2 border-black p-3 font-mono text-sm focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_#32ff84] transition-all"
+                disabled={isSubmittingContact}
+                className="w-full bg-neutral-50 border-2 border-black p-3 font-mono text-sm focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_#32ff84] transition-all disabled:opacity-50"
                 placeholder="YOUR NAME"
               />
             </div>
@@ -67,7 +97,8 @@ export default function ContactPage() {
                 value={contactEmail}
                 onChange={e => setContactEmail(e.target.value)}
                 required
-                className="w-full bg-neutral-50 border-2 border-black p-3 font-mono text-sm focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_#32ff84] transition-all"
+                disabled={isSubmittingContact}
+                className="w-full bg-neutral-50 border-2 border-black p-3 font-mono text-sm focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_#32ff84] transition-all disabled:opacity-50"
                 placeholder="YOUR@EMAIL.COM"
               />
             </div>
@@ -81,7 +112,8 @@ export default function ContactPage() {
               onChange={e => setContactMessage(e.target.value)}
               required
               rows={5}
-              className="w-full bg-neutral-50 border-2 border-black p-3 font-mono text-sm focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_#32ff84] transition-all resize-y"
+              disabled={isSubmittingContact}
+              className="w-full bg-neutral-50 border-2 border-black p-3 font-mono text-sm focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_#32ff84] transition-all resize-y disabled:opacity-50"
               placeholder="YOUR MESSAGE..."
             ></textarea>
           </div>

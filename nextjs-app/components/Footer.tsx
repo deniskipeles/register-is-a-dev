@@ -12,7 +12,7 @@ export default function Footer() {
             <span>NODE_V2_ACTIVE [32ms]</span>
           </div>
           <div>
-            <span>INTEGRATED STACK: NEXT.js x TAILWIND</span>
+            <span>INTEGRATED STACK: NEXT.js x APEXKIT</span>
           </div>
         </div>
       </div>

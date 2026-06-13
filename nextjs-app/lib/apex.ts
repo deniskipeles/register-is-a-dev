@@ -6,7 +6,7 @@ import {
   HomeHeroData, HOME_HERO
 } from './data';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://kipeles-apexkit.hf.space';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://kipeles-vs--5000.hf.space';
 const TENANT_ID = 'portfolio';
 
 // Initialize the SDK lazy-loaded
